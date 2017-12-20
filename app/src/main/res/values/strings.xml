@@ -2,4 +2,6 @@
     <string name="app_name">Bitcoin Stats</string>
     <string name="connection_error">Something went wrong. Check zour internet connection and try again.</string>
     <string name="something_went_wrong">Something went wrong.</string>
+    <string name="market_price">Bitcoin Market Price</string>
+    <string name="seven_days_overview">7 Days Overview</string>
 </resources>

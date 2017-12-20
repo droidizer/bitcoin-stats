@@ -2,13 +2,12 @@ package com.codechallenge.badrobot.bitcoinstats.viewmodel;
 
 
 import android.app.Application;
-import android.arch.lifecycle.ViewModel;
-import android.arch.lifecycle.ViewModelProviders;
+import android.content.res.Resources;
 import android.databinding.Bindable;
 import android.graphics.Color;
-import android.support.annotation.NonNull;
 
 import com.codechallenge.badrobot.bitcoinstats.BR;
+import com.codechallenge.badrobot.bitcoinstats.R;
 import com.codechallenge.badrobot.bitcoinstats.model.DataPoints;
 import com.codechallenge.badrobot.bitcoinstats.network.IBitcoinNetworkManager;
 import com.github.mikephil.charting.data.Entry;
@@ -16,11 +15,7 @@ import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.utils.EntryXComparator;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.time.format.DateTimeFormatterBuilder;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 
@@ -31,6 +26,7 @@ import io.reactivex.disposables.Disposables;
 
 public class BitcoinMarketPriceViewModel extends BaseViewModel {
 
+    private final Resources mResources;
     private IBitcoinNetworkManager mBitcoinManager;
 
     private Disposable mDisposable = Disposables.disposed();
@@ -39,15 +35,17 @@ public class BitcoinMarketPriceViewModel extends BaseViewModel {
 
     @Inject
     BitcoinMarketPriceViewModel(Application application,
+                                Resources resources,
                                 IBitcoinNetworkManager bitcoinManager) {
         super(application);
+        mResources = resources;
         mBitcoinManager = bitcoinManager;
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
-        mDisposable = mBitcoinManager.getPrice("7days")
+        mDisposable = mBitcoinManager.getPrice("30days")
                 .subscribe(this::notifyChanges, this::notifyErrorMessage);
     }
 
@@ -60,31 +58,25 @@ public class BitcoinMarketPriceViewModel extends BaseViewModel {
 
         Collections.sort(entries, new EntryXComparator());
 
-        lineDataSet.setColor(Color.GREEN);
+        lineDataSet = new LineDataSet(entries, mResources.getString(R.string.market_price));
+        lineDataSet.setColor(Color.BLUE);
+        lineDataSet.setValueTextSize(mResources.getDimension(R.dimen.text_2));
         lineDataSet.setValueTextColor(Color.RED);
+        lineDataSet.setCircleColor(Color.BLUE);
         lineDataSet.setLineWidth(1f);
 
         lineData = new LineData(lineDataSet);
         notifyPropertyChanged(BR.dataPoints);
+        notifyPropertyChanged(BR.formatterInt);
+    }
+
+    @Bindable
+    public int getFormatterInt() {
+        return 0;
     }
 
     @Bindable
     public LineData getDataPoints() {
         return lineData;
-    }
-
-    public static class Factory extends ViewModelProviders.DefaultFactory {
-        private final IBitcoinNetworkManager mBitcoinManager;
-
-        public Factory(@NonNull Application application, IBitcoinNetworkManager bitcoinNetworkManager) {
-            super(application);
-            mBitcoinManager = bitcoinNetworkManager;
-        }
-
-        @NonNull
-        @Override
-        public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
-            return super.create(modelClass);
-        }
     }
 }
